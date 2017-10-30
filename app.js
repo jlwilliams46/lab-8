@@ -1,65 +1,116 @@
 'use strict';
 
-// global variable
-var hours = ['6 am', '7 am', '8am', '9 am', '10 am', '11 am', '12 pm', '1 pm', '2 pm', '3 pm', '4 pm', '5 pm', '6 pm', '7 pm'];
-var trEl = document.createElement('tr'); // defines row in a table, table row element
-var tdEl = document.createElement('td'); // defines cell in a table, tag defines element
+var bizHrs = ['6am', '7am', '8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm'];
 
+var AllStores = [];
+var allCookies = [];
+var grandTotal = 0;
 
 function headerCreator() {
-  trEl; tdEl;
+  var trEl = document.createElement('tr');
+  var thEl = document.createElement('th');
+  thEl.textContent = 'Location';
   trEl.appendChild(thEl);
-  while (i < hours.length) {
+  for (var i = 0; i < bizHrs.length; i++) {
     thEl = document.createElement('th');
-    thEl.textContent = hours[i];
+    thEl.textContent = bizHrs[i];
     trEl.appendChild(thEl);
-    dataTable.appendChild(trEl);
+    data.appendChild(trEl);
   }
-  i++;
+  thEl = document.createElement('th');
+  thEl.textContent = 'Daily';
+  trEl.appendChild(thEl);
+  data.appendChild(trEl);
 }
 
-function Stats(store, hrlyCookies, custMin, custMax) {
-  this.store = store;
-  this.hrlyCookies = hrlyCookies;
-  this.custMin = custMin;
-  this.custMax = custMax;
+function footerCreator(){
+  var trEl = document.createElement('tr');
+  var thEl = document.createElement('th');
+  thEl.textContent = 'Hourly';
+  trEl.appendChild(thEl);
+  data.appendChild(trEl);
+
+  hourlyTotals();
+  grandTotal = 0;
+  for (var i = 0; i < bizHrs.length; i++){
+    thEl = document.createElement('th');
+    thEl.textContent = allCookies[i];
+    grandTotal += allCookies[i];
+    trEl.appendChild(thEl);
+    data.appendChild(trEl);
+  }
+  thEl = document.createElement('th');
+  thEl.textContent = grandTotal;
+  trEl.appendChild(thEl);
+  data.appendChild(trEl);
 }
+
 function rowCreator() {
-  while(AllStores[j]) {
+  for(var j in AllStores){
     AllStores[j].render();
   }
 }
-// using constructor function learned in class during demonstration
-var AllStores = [];
-var dataTable = document.getElementById('locations');
 
-this.hrlyCust = function(){ // determining the number of customers per hour
-  return Math.floor((Math.random() * this.custMax - this.custMin + 1) + this.custMin); // source: MDN docs
-  this.hrlySales = function(){ // determining the number of sales per hour
-    return Math.floor((this.hrlyCust(this.custMin,this.custMax)) * this.hrlyCookies); // source: MDN docs
-  };
+var data = document.getElementById('stores');
+function Store(name, custMin, custMax, hrlyCookies){
+  this.name = name;
+  this.custMin = custMin;
+  this.custMax = custMax;
+  this.hrlyCookies = hrlyCookies;
+  this.perHr = [];
+  this.perHrCookies = [];
+  this.perDay = 0;
+  this.hrlySales();
   AllStores.push(this);
 };
-// required prototype
-Stats.prototype.render = function() {
-  trEl; tdEl;
-  tdEl.textContent = this.store;
-  trEl.appendChild(tdEl);
-  while (i < hours.length) {
-    tdEl = document.createElement('td');
-    tdEl.textContent = this.hrlySales();
-    trEl.appendChild(tdEl);
-    dataTable.appendChild(trEl);
-  }
-  i++;
+
+Store.prototype.hrlyCust = function(){
+  var randNum1 = Math.floor(Math.random() * (this.custMax - this.custMin + 1) + this.custMin);
+  this.perHr.push(randNum1);
+  return randNum1;
 };
 
-// the "new operator"
-new Stats('1st and Pike', 23, 65, 6.3);
-new Stats('Seatac Airport', 3, 24, 1.2);
-new Stats('Seattle Center', 11, 38, 3.7);
-new Stats('Capitol Hill', 20, 38, 2.3);
-new Stats('Alki', 2, 16, 4.6);
+Store.prototype.hrlySales = function(){
+  for (var i = 0; i < bizHrs.length; i++){
+    var randNum2 = Math.floor(this.hrlyCust() * this.hrlyCookies);
+    this.perHrCookies.push(randNum2);
+    this.perDay += randNum2;
+  }
+};
 
-headerCreator(); // calling function
-rowCreator(); // calling function
+function hourlyTotals(){
+  for (var i = 0; i < bizHrs.length; i++){
+    var storeTotal = 0;
+    for (var j = 0; j < AllStores.length; j++){
+      storeTotal = storeTotal + AllStores[j].perHrCookies[i];
+    }
+    allCookies.push(storeTotal);
+  }
+};
+
+Store.prototype.render = function() {
+  var trEl = document.createElement('tr');
+  var tdEl = document.createElement('td');
+  tdEl.textContent = this.name;
+  trEl.appendChild(tdEl);
+  for (var i = 0; i < bizHrs.length; i++) {
+    tdEl = document.createElement('td');
+    tdEl.textContent = this.perHrCookies[i];
+    trEl.appendChild(tdEl);
+    data.appendChild(trEl);
+  }
+  var thEl = document.createElement('th');
+  thEl.textContent = this.perDay;
+  trEl.appendChild(thEl);
+  data.appendChild(trEl);
+};
+
+new Store('1st and Pike', 23, 65, 6.3);
+new Store('Seatac Airport', 3, 24, 1.2);
+new Store('Seattle Center', 11, 38, 3.7);
+new Store('Capitol Hill', 20, 38, 2.3);
+new Store('Alki', 2, 16, 4.6);
+
+headerCreator();
+rowCreator();
+footerCreator();
